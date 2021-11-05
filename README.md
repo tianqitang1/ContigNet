@@ -35,9 +35,9 @@ To install required dependencies a [Anaconda](https://www.anaconda.com/products/
 
 ### Feature extractor mode
 
-<!-- ### Data Preparation
+### Training a new model
 
-This  -->
+#### Data preparation
 
 ## Examples
 
