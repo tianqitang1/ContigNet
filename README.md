@@ -16,7 +16,28 @@ Existing Deep learning based methods are not able to solve the particular questi
 
 ## Installation
 
+To use the software, download and enter the repository by
+``` bash
+git clone https://github.com/tianqitang1/ContigNet
+cd ContigNet
+```
+
+To install required dependencies a [Anaconda](https://www.anaconda.com/products/individual) or [Miniconda](https://conda.io/miniconda.html) installation is required. After a conda distribution is installed, create and activate a ```conda``` virtual environment with the following commands
+ ``` bash
+ conda create --name ContigNet --file requirements.txt
+ conda activate ContigNet
+ ```
+
+
 ## Usage
+
+### Test new contigs
+
+### Feature extractor mode
+
+<!-- ### Data Preparation
+
+This  -->
 
 ## Examples
 
