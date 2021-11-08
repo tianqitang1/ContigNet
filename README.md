@@ -8,6 +8,8 @@ Maintainer: Tianqi Tang tianqit@usc.edu
 
 ## Description
 
+This is the repository containing the software ContigNet and related scripts for the paper "Phage-bacteria contig interaction prediction with convolutional neural network".
+
 ContigNet is a deep learning based software for phage-host contig interaction prediction.
 Traditional methods can work on contigs however the performance is poor. 
 Existing Deep learning based methods are not able to solve the particular question regarding interaction prediction between two contigs.
@@ -35,11 +37,12 @@ To install required dependencies a [Anaconda](https://www.anaconda.com/products/
 
 ### Feature extractor mode
 
-### Training a new model
-
-#### Data preparation
 
 ## Examples
+
+## Paper related
+
+Browse ```training``` directory for the instructions of running the training and testing process for the paper.
 
 ## Copyright and License Information
 Copyright (C) 2021 University of Southern California
