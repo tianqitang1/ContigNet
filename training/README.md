@@ -1,9 +1,10 @@
 # Training
 
-## Data preparation
+## Data availability
 
-The data used in the paper "Phage-bacteria contig interaction prediction with convolutional neural network" can be downloaded from [GoogleDrive](). The downloaded archive file should be released to ```data``` directory.
+The data used in the paper "Phage-bacteria contig interaction prediction with convolutional neural network" can be downloaded from [GoogleDrive](https://drive.google.com/file/d/1VJARCYazlk7C9IbJF62mfP7vdTP8GwiE/view?usp=sharing). The downloaded archive file should be released to ```data``` directory.
 
+## Prepeare your own data
 You can also prepare the data from scratch. First create and enter the directory with
 ``` bash
 mkdir data
