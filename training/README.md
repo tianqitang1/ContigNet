@@ -2,7 +2,7 @@
 
 ## Data availability
 
-The data used in the paper "Phage-bacteria contig interaction prediction with convolutional neural network" can be downloaded from [GoogleDrive](https://drive.google.com/file/d/1VJARCYazlk7C9IbJF62mfP7vdTP8GwiE/view?usp=sharing). The downloaded archive file should be released to ```data``` directory.
+The data used in the paper "Phage-bacteria contig interaction prediction with convolutional neural network" can be downloaded from [GoogleDrive](https://drive.google.com/file/d/1VJARCYazlk7C9IbJF62mfP7vdTP8GwiE/view?usp=sharing). The downloaded archive file should be extracted to ```data``` directory.
 
 ## Prepeare your own data
 You can also prepare the data from scratch. First create and enter the directory with
@@ -16,6 +16,18 @@ Then download the Virus-Host DB files with
 wget https://www.genome.jp/ftp/db/virushostdb/virushostdb.tsv
 wget https://www.genome.jp/ftp/db/virushostdb/virushostdb.formatted.genomic.fna.gz
 tar -xzvf virushostdb.formatted.genomic.fna.gz
+```
+
+```scripts``` directory contains necessary scripts to process the data. 
+First split the sequences into individual files for following processes.
+``` bash
+cd scripts
+python split_virus_fasta.py --input {path/to/virushostdb.formatted.genomic.fna} --output {output/directory}
+```
+
+The virus sequences need to be clustered with [CD-HIT](http://weizhong-lab.ucsd.edu/cd-hit/) to remove redundancy, after installation, run
+``` bash
+./cd-hit-est -i {path/to/virushostdb.formatted.genomic.fna} -o {output/directory} -c 0.95 -G 0 -aS 0.5 -M 0 -T 32 -n 3
 ```
 
 
