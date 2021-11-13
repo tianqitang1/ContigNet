@@ -1,0 +1,7 @@
+#!/bin/bash
+#SBATCH --ntasks=32
+#SBATCH --mem=128G
+#SBATCH --time=600:00:00
+#SBATCH --partition=cmb
+
+./cd-hit-est -i ../data/virushostdb.formatted.genomic.fna -o ../data/virus_cluster -c 0.95 -G 0 -aS 0.5 -M 0 -T 32 -n 3
