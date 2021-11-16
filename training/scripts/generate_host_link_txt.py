@@ -10,7 +10,7 @@ import util
 
 import argparse
 
-parser = argparse.ArgumentParser(description='Preprocessing for running on CARC')
+# parser = argparse.ArgumentParser(description='Preprocessing for running on CARC')
 
 data_dir = os.path.join('..', 'data')
 
