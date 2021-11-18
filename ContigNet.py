@@ -37,10 +37,10 @@ if __name__ == "__main__":
         description="ContigNet, a deep learning based phage-host interaction prediction tool", formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        "--host_dir", dest="host_dir", help="Directory containing host one hot matrix", default="demo/host_fasta"
+        "--host_dir", dest="host_dir", help="Directory containing host contig sequences in fasta format", default="demo/host_fasta"
     )
     parser.add_argument(
-        "--virus_dir", dest="virus_dir", help="Directory containing virus one hot matrix", default="demo/virus_fasta"
+        "--virus_dir", dest="virus_dir", help="Directory containing virus contig sequences in fasta format", default="demo/virus_fasta"
     )
 
     parser.add_argument("--output, -o", dest="output", help="Path to output file", default='result.csv')
