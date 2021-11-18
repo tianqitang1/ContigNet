@@ -14,8 +14,6 @@ ContigNet is a deep learning based software for phage-host contig interaction pr
 Traditional methods can work on contigs however the performance is poor. 
 Existing Deep learning based methods are not able to solve the particular question regarding interaction prediction between two contigs.
 
-## Dependencies
-
 ## Installation
 
 To use the software, download and enter the repository by
