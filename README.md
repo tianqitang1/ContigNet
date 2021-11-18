@@ -33,12 +33,36 @@ To install required dependencies a [Anaconda](https://www.anaconda.com/products/
 
 ## Usage
 
-### Test new contigs
+```
+usage: ContigNet.py [-h] [--host_dir HOST_DIR] [--virus_dir VIRUS_DIR]
+                    [--output, -o OUTPUT] [--cpu]
 
-### Feature extractor mode
+ContigNet, a deep learning based phage-host interaction prediction tool
 
+optional arguments:
+  -h, --help            show this help message and exit
+  --host_dir HOST_DIR   Directory containing host contig sequences in fasta
+                        format (default: demo/host_fasta)
+  --virus_dir VIRUS_DIR
+                        Directory containing virus contig sequences in fasta
+                        format (default: demo/virus_fasta)
+  --output, -o OUTPUT   Path to output file (default: result.csv)
+  --cpu                 Force using CPU if specified (default: False)
+```
 
 ## Examples
+
+### Test new contigs
+
+Suppose the phage and host sequences are stored in ```phage``` and ```host``` directories respectively, running
+
+``` bash
+python ContigNet.py --host_dir host --virus_dir phage
+```
+
+And the likelihood of each phage interacting with each host will be output to ```result.csv```.
+
+### Feature extractor mode
 
 ## Paper related
 
