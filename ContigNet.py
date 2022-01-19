@@ -25,7 +25,7 @@ from torch.utils.tensorboard import SummaryWriter
 from sklearn import metrics
 import time
 import util
-import seaborn
+from tqdm import tqdm
 
 from train_model import test, evaluate_performance, load_virus_onehot
 
@@ -68,18 +68,25 @@ if __name__ == "__main__":
     virus_name_list = [os.path.splitext(i)[0] for i in virus_list]
     virus_path_list = [os.path.join(args.virus_dir, i) for i in virus_list]
 
-    # host_sequences = {host_name_list[i]: util.load}
-    # virus_sequences = {}
-
-    host_onehots = {host_name_list[i]: util.fasta2onehot(host_path_list[i]) for i in range(len(host_list))}
-    virus_onehots = {virus_name_list[i]: util.fasta2onehot(virus_path_list[i]) for i in range(len(virus_list))}
+    # print(f'Loading fasta files')
+    # host_onehots = {host_name_list[i]: util.fasta2onehot(host_path_list[i]) for i in tqdm(range(len(host_list)))}
+    # virus_onehots = host_onehots
+    # virus_onehots = {virus_name_list[i]: util.fasta2onehot(virus_path_list[i]) for i in tqdm(range(len(virus_list)))}
     
-    result_df = pd.DataFrame(np.zeros((len(host_list), len(virus_list))), host_name_list, virus_name_list)
+    result_df = pd.DataFrame(np.zeros((len(host_list), len(virus_list))), columns=host_name_list, index=virus_name_list)
 
     with torch.no_grad():
         model.eval()
-        for host_name, host_onehot in host_onehots.items():
-            for virus_name, virus_onehot in virus_onehots.items():
+        # for host_name, host_onehot in tqdm(host_onehots.items()):
+        #     for virus_name, virus_onehot in virus_onehots.items():
+        for i, host_fn in tqdm(enumerate(host_list)):
+            host_name = host_name_list[i]
+            host_path = host_path_list[i]
+            host_onehot = util.fasta2onehot(host_path)
+            for j, virus_fn in tqdm(enumerate(virus_list), leave=False):
+                virus_name = virus_name_list[j]
+                virus_path = virus_path_list[j]
+                virus_onehot = util.fasta2onehot(virus_path)
                 try:
                     host_tensor = torch.Tensor(host_onehot).to(device)[None, None, :, :]
                     virus_tensor = torch.Tensor(virus_onehot).to(device)[None, None, :, :]
