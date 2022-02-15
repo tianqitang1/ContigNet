@@ -1,3 +1,10 @@
+*.log
+host_features
+virus_features
+results
+.vscode
+*.pkl
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
