@@ -57,7 +57,7 @@ if __name__ == "__main__":
         print("CUDA is not available or CPU is explicitly selected for use. Using CPU.")
         device = torch.device("cpu")
 
-    model = torch.load('model')
+    model = torch.load('model', map_location=device)
 
     host_list = os.listdir(args.host_dir)
     host_list.sort()
@@ -90,13 +90,17 @@ if __name__ == "__main__":
                 try:
                     host_tensor = torch.Tensor(host_onehot).to(device)[None, None, :, :]
                     virus_tensor = torch.Tensor(virus_onehot).to(device)[None, None, :, :]
-                    output = torch.sigmoid(model(host_tensor, virus_tensor)).cpu().numpy().flatten()[0]
-                except RuntimeError: # Fallback in case of out of GPU memory
-                    torch.cuda.empty_cache()
-                    model = model.to('cpu')
-                    host_tensor = torch.Tensor(host_onehot)[None, None, :, :]
-                    virus_tensor = torch.Tensor(virus_onehot)[None, None, :, :]
-                    output = torch.sigmoid(model(host_tensor, virus_tensor)).numpy().flatten()[0]
+                    if str(device) != "cpu":
+                        output = torch.sigmoid(model(host_tensor, virus_tensor)).cpu().numpy().flatten()[0]
+                    else:
+                        output = torch.sigmoid(model(host_tensor, virus_tensor)).numpy().flatten()[0]
+                except RuntimeError as e: # Fallback in case of out of GPU memory
+                    if "CUDA error: out of memory" in str(e):
+                        torch.cuda.empty_cache()
+                        model = model.to('cpu')
+                        host_tensor = torch.Tensor(host_onehot)[None, None, :, :]
+                        virus_tensor = torch.Tensor(virus_onehot)[None, None, :, :]
+                        output = torch.sigmoid(model(host_tensor, virus_tensor)).numpy().flatten()[0]
                 result_df.loc[host_name, virus_name] = output
     result_df.to_csv(args.output)
 
