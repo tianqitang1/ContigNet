@@ -73,7 +73,7 @@ if __name__ == "__main__":
     # virus_onehots = host_onehots
     # virus_onehots = {virus_name_list[i]: util.fasta2onehot(virus_path_list[i]) for i in tqdm(range(len(virus_list)))}
     
-    result_df = pd.DataFrame(np.zeros((len(host_list), len(virus_list))), columns=host_name_list, index=virus_name_list)
+    result_df = pd.DataFrame(np.zeros((len(host_list), len(virus_list))), columns=virus_name_list, index=host_name_list)
 
     with torch.no_grad():
         model.eval()
