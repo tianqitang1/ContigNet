@@ -24,8 +24,10 @@ cd ContigNet
 
 To install required dependencies a [Anaconda](https://www.anaconda.com/products/individual) or [Miniconda](https://conda.io/miniconda.html) installation is required. After a conda distribution is installed, create and activate a ```conda``` virtual environment with the following commands
  ``` bash
- conda create --name ContigNet --file requirements.txt
+ conda create --name ContigNet
  conda activate ContigNet
+ conda install numpy pandas scikit-learn matplotlib ete3 statsmodels biopython tensorboard
+ conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch (choose CUDA, ROCm or CPU according to your machine)
  ```
 
 
