@@ -1,6 +1,6 @@
 # ContigNet: Phage-bacteria contig interaction prediction with convolutional neural network
 
-The paper has been published at https://doi.org/10.1093/bioinformatics/btac239
+The paper has been published at <https://doi.org/10.1093/bioinformatics/btac239>
 
 Version: 1.0
 
@@ -13,18 +13,20 @@ Maintainer: Tianqi Tang tianqit@usc.edu
 This is the repository containing the software ContigNet and related scripts for the paper "Phage-bacteria contig interaction prediction with convolutional neural network".
 
 ContigNet is a deep learning based software for phage-host contig interaction prediction.
-Traditional methods can work on contigs however the performance is poor. 
+Traditional methods can work on contigs however the performance is poor.
 Existing Deep learning based methods are not able to solve the particular question regarding interaction prediction between two contigs.
 
 ## Installation
 
 To use the software, download and enter the repository by
+
 ``` bash
 git clone https://github.com/tianqitang1/ContigNet
 cd ContigNet
 ```
 
 To install required dependencies a [Anaconda](https://www.anaconda.com/products/individual) or [Miniconda](https://conda.io/miniconda.html) installation is required. After a conda distribution is installed, create and activate a ```conda``` virtual environment with the following commands
+
  ``` bash
  conda create --name ContigNet
  conda activate ContigNet
@@ -32,10 +34,9 @@ To install required dependencies a [Anaconda](https://www.anaconda.com/products/
  conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch (choose CUDA, ROCm or CPU according to your machine)
  ```
 
-
 ## Usage
 
-```
+``` bash
 usage: ContigNet.py [-h] [--host_dir HOST_DIR] [--virus_dir VIRUS_DIR]
                     [--output, -o OUTPUT] [--cpu]
 
@@ -71,6 +72,7 @@ And the likelihood of each phage interacting with each host will be output to ``
 Browse ```training``` directory for the instructions of running the training and testing process for the paper.
 
 ## Copyright and License Information
+
 Copyright (C) 2021 University of Southern California
 
 Authors: Tianqi Tang, Shengwei Hou, Jed Fuhrman, Fengzhu Sun
