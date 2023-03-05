@@ -4,6 +4,7 @@ virus_features
 results
 .vscode
 *.pkl
+5yr
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

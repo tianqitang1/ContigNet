@@ -7,7 +7,7 @@ import pandas as pd
 
 from matplotlib import pyplot as plt
 import matplotlib as mpl
-from train_model import load_host_onehot, train_test_split
+from scripts.train_model import load_host_onehot, train_test_split
 from typing import List
 
 sys.path.append("..")
@@ -25,10 +25,10 @@ from torch.cuda.amp import autocast, GradScaler
 from torch.utils.tensorboard import SummaryWriter
 from sklearn import metrics
 import time
-import util
+import ContigNet.util as util
 from tqdm import tqdm
 
-from train_model import test, evaluate_performance, load_virus_onehot
+from scripts.train_model import test, evaluate_performance, load_virus_onehot
 
 import argparse
 
