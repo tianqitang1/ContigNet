@@ -2,7 +2,7 @@
 
 The paper has been published at <https://doi.org/10.1093/bioinformatics/btac239>
 
-Version: 1.0
+Version: 1.0.1
 
 Authors: Tianqi Tang, Shengwei Hou, Jed Fuhrman, Fengzhu Sun
 
