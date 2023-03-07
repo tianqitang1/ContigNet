@@ -4,7 +4,7 @@ import os
 import numpy as np
 import csv
 import pickle
-import statsmodels.api as sm
+# import statsmodels.api as sm
 from typing import List, Optional
 import pandas as pd
 from ete3 import NCBITaxa
@@ -39,15 +39,15 @@ def load_obj(name: str):
         return pickle.load(f)
 
 
-def lowess_adjustment(y: List[np.ndarray], x, target):
-    lowess = sm.nonparametric.lowess
+# def lowess_adjustment(y: List[np.ndarray], x, target):
+#     lowess = sm.nonparametric.lowess
 
-    z = lowess(y[0], x, return_sorted=False)
-    y_new = []
-    for y_ in y:
-        y_new.append(y_ + target - z)
+#     z = lowess(y[0], x, return_sorted=False)
+#     y_new = []
+#     for y_ in y:
+#         y_new.append(y_ + target - z)
 
-    return y_new
+#     return y_new
 
 
 def count_nucleotide(file):

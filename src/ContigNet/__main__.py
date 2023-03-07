@@ -22,7 +22,7 @@ warnings.filterwarnings(
 import numpy as np
 import torch
 # import ContigNet.util as util
-import util
+from . import util, VirusCNN_siamese
 from tqdm import tqdm
 import pkgutil
 from io import BytesIO
@@ -31,20 +31,19 @@ from io import BytesIO
 
 import argparse
 
-
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(
         description="ContigNet, a deep learning based phage-host interaction prediction tool",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "--host_dir",
+        "--host_dir", '-ho',
         dest="host_dir",
         help="Directory containing host contig sequences in fasta format",
         default="demo/host_fasta",
     )
     parser.add_argument(
-        "--virus_dir",
+        "--virus_dir", '-vi',
         dest="virus_dir",
         help="Directory containing virus contig sequences in fasta format",
         default="demo/virus_fasta",
@@ -63,9 +62,14 @@ if __name__ == "__main__":
         print("CUDA is not available or CPU is explicitly selected for use. Using CPU.")
         device = torch.device("cpu")
 
-    model = BytesIO(pkgutil.get_data("ContigNet", "models/final_model"))
-    model = torch.load(model, map_location=device)
+    # model = BytesIO(pkgutil.get_data("ContigNet", "models/final_model"))
+    # print(len(pkgutil.get_data("ContigNet", "models/final_model")))
+    # print(type(model))
+    # print(model)
+    # model = torch.load(model, map_location=device)
     # model = torch.load("models/final_model", map_location=device)
+    model = VirusCNN_siamese.VirusCNN(share_weight=True).to(device)
+    model.load_state_dict(torch.load(BytesIO(pkgutil.get_data("ContigNet", "models/model.dict")), map_location=device))
 
     host_list = os.listdir(args.host_dir)
     host_list.sort()
@@ -109,5 +113,10 @@ if __name__ == "__main__":
                         host_tensor = torch.Tensor(host_onehot)[None, None, :, :]
                         virus_tensor = torch.Tensor(virus_onehot)[None, None, :, :]
                         output = torch.sigmoid(model(host_tensor, virus_tensor)).numpy().flatten()[0]
+                    else:
+                        raise e
                 result_df.loc[host_name, virus_name] = output
     result_df.to_csv(args.output)
+
+if __name__ == "__main__":
+    main()
