@@ -2,92 +2,108 @@ from itertools import groupby
 from operator import itemgetter
 import os
 import numpy as np
-import csv
 import pickle
-# import statsmodels.api as sm
-from typing import List, Optional
+from typing import Optional, Any
 import pandas as pd
 from ete3 import NCBITaxa
 from Bio import SeqIO
 import math
+from Bio.Blast.Applications import NcbiblastnCommandline
+from io import StringIO
+from pathlib import Path
 
 ncbi = NCBITaxa()
 NT_DICT = {"A": 0, "C": 1, "G": 2, "T": 3}
 
 
-def save_obj(obj, name):
-    """Save an object on given path
+def save_obj(obj: Any, name: str) -> None:
+    """Save an object on given path.
 
-    :param obj: Object to be save
-    :type obj: Any
-    :param name: Path of the saved object
-    :type name: str
+    This function uses pickle to serialize and save an object on a given path.
+
+    Parameters
+    ----------
+    obj : Any
+        Object to be saved.
+    name : str
+        Path of the saved object.
+
+    Returns
+    -------
+    None
     """
     with open(name, "wb") as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
 
 
-def load_obj(name: str):
-    """Load a saved object from hard disk
+def load_obj(name: str) -> Any:
+    """Load a saved object from hard disk.
 
-    :param name: Paht of the saved object
-    :type name: str
-    :return: The saved object
-    :rtype: Any
+    This function uses pickle to deserialize and load an object from a given path.
+
+    Parameters
+    ----------
+    name : str
+        Path of the saved object.
+
+    Returns
+    -------
+    Any
+        The saved object.
     """
     with open(name, "rb") as f:
         return pickle.load(f)
 
 
-# def lowess_adjustment(y: List[np.ndarray], x, target):
-#     lowess = sm.nonparametric.lowess
+def count_nucleotide(file: str) -> np.ndarray:
+    """Count occurrence of nucleotide in given files.
 
-#     z = lowess(y[0], x, return_sorted=False)
-#     y_new = []
-#     for y_ in y:
-#         y_new.append(y_ + target - z)
+    This function reads a fasta file and counts the occurrence of A, C, G, T in each sequence.
 
-#     return y_new
+    Parameters
+    ----------
+    file : str
+        Path to fasta file.
 
-
-def count_nucleotide(file):
-    """Count occurrence of nucleotide in given file
-
-    :param file: Path to fasta file
-    :type file: str
-    :return: Count of A, C, G, T in given file
-    :rtype: np.ndarray
+    Returns
+    -------
+    np.ndarray
+        Count of A, C, G, T in given file.
     """
     nucleotides = ["A", "C", "G", "T"]
-    try:
-        f = open(file)
-    except UnicodeDecodeError:
-        print(file)
-        return np.ones(4)
     occ = np.zeros(4)
     try:
-        for line in f.readlines():
-            if line[0] == ">":
-                continue
-            l = line.upper()
-            for i, n in enumerate(nucleotides):
-                occ[i] += l.count(n)
-        return occ
+        with open(file) as f:
+            for line in f:
+                if line.startswith(">"):
+                    continue
+                line_upper = line.upper()
+                for i, n in enumerate(nucleotides):
+                    occ[i] += line_upper.count(n)
     except UnicodeDecodeError:
         print(file)
-        return np.ones(4)
+        occ = np.ones(4)
+    return occ
 
 
-def split_fasta_by_size(input_path, output_dir_path, size=5000):
-    """Split a given fasta file and save the split fasta into the output directory
+def split_fasta_by_size(input_path: Path, output_dir_path: Path, size: int = 5000) -> None:
+    """Split a given fasta file and save the split fasta into the output directory.
 
-    :param input_path: path to the fasta file
-    :param output_dir_path: path of the output directory
-    :param size:
+    Parameters
+    ----------
+    input_path : Path
+        Path to the fasta file.
+    output_dir_path : Path
+        Path of the output directory.
+    size : int, optional
+        The size of each split sequence. The default is 5000.
+
+    Returns
+    -------
+    None
     """
 
-    if not os.path.exists(output_dir_path):
-        os.makedirs(output_dir_path)
+    os.makedirs(output_dir_path, exist_ok=True)
 
     with open(input_path) as fasta_handle:
         whole_seq = ""
@@ -101,9 +117,9 @@ def split_fasta_by_size(input_path, output_dir_path, size=5000):
         with open(os.path.join(output_dir_path, output_fasta_filename), "w") as output_handle:
             output_handle.write(">{}\n".format(i))
             if i != split_num - 1:
-                output_handle.write(whole_seq[size * i : size * (i + 1)])
+                output_handle.write(whole_seq[size * i: size * (i + 1)])
             else:
-                output_handle.write(whole_seq[size * i :])
+                output_handle.write(whole_seq[size * i:])
 
 
 def remove_plasmid_seq(input_dir_path, output_dir_path):
@@ -140,10 +156,6 @@ def remove_plasmid_seq(input_dir_path, output_dir_path):
         output_handle.close()
 
 
-from Bio.Blast.Applications import NcbiblastnCommandline
-from io import StringIO
-
-
 def blast_single(fasta_path, db_path):
     """Blast the given fasta file to a NCBI database and calculate the percentage of aligned regions
 
@@ -155,7 +167,7 @@ def blast_single(fasta_path, db_path):
     def cal_perc(x):
         indicator = [0] * x[4]
         for i in range(len(x[2])):
-            indicator[x[2][i] : x[3][i]] = [1] * (x[3][i] - x[2][i] + 1)
+            indicator[x[2][i]: x[3][i]] = [1] * (x[3][i] - x[2][i] + 1)
         return sum(indicator)
 
     blastn_cline = NcbiblastnCommandline(
@@ -261,7 +273,7 @@ def seq2intseq(seq: str, contig_length: Optional[int] = None) -> np.ndarray:
             seq_int[: len(seq)] = list(map(nt2index, str(seq)))
         else:
             start_idx = np.random.randint(len(seq) - contig_length)
-            seq_int = np.array(list(map(nt2index, str(seq[start_idx : start_idx + contig_length]))))
+            seq_int = np.array(list(map(nt2index, str(seq[start_idx: start_idx + contig_length]))))
         return seq_int
     else:
         return np.array(list(map(nt2index, str(seq))))
@@ -400,12 +412,12 @@ def get_rank(taxid, rank):
         return None
 
 
-def generate_negative_sample(taxid_list, taxid_pool, rank):
-    taxid_ranked_list = [ncbi.get_lineage()]
-    negative_list = []
+# def generate_negative_sample(taxid_list, taxid_pool, rank):
+#     taxid_ranked_list = [ncbi.get_lineage()]
+#     negative_list = []
 
 
-def tuple_list_to_dict_set(l):
+def tuple_list_to_dict_set(list):
     """
     Given a tuple list, returns a dictionary with the first element of the tuple
     as key and set of the second element as value.
@@ -431,7 +443,8 @@ def tuple_list_to_dict_set(l):
     If multiple tuples have the same first element, the second elements are
     added to the same set for that key.
     """
-    return dict((k, set([v[1] for v in itr])) for k, itr in groupby(l, itemgetter(0)))
+    return dict((k, set([v[1] for v in itr])) for k, itr in groupby(list, itemgetter(0)))
+
 
 def load_virus_onehot(virus_dir, virus_list):
     """Load all virus onehot matrices into memory
@@ -476,15 +489,16 @@ def load_host_onehot(host_dir, host_set, host_taxid_to_fasta):
         host_onehot[host_fn] = onehot
     return host_onehot
 
+
 def train_test_split(virus_host_pair, train_ratio=0.8, host_taxon_level='genus', training_only=False):
     if training_only:
         return virus_host_pair, []
     train_boundary = math.floor(len(virus_host_pair) * train_ratio)
     init_train_pair_list = virus_host_pair[:train_boundary]
     init_test_pair_list = virus_host_pair[train_boundary:]
-    virus_train_test_intersection = set(list(zip(*init_train_pair_list))[0]).intersection(
-        set(list(zip(*init_test_pair_list))[0])
-    )
+    # virus_train_test_intersection = set(list(zip(*init_train_pair_list))[0]).intersection(
+    #     set(list(zip(*init_test_pair_list))[0])
+    # )
     # host_train_test_intersection = set(list(zip(*init_train_pair_list))[1]).intersection(
     #     set(list(zip(*init_test_pair_list))[1])
     # )
