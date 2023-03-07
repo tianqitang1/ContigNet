@@ -1,31 +1,20 @@
 #!/usr/bin/env python
 
-import math
 import os
-import random
-import sys
 import pandas as pd
-from typing import List
-
-sys.path.append("..")
-
 import warnings
+import numpy as np
+import torch
+from . import util, VirusCNN_siamese
+from tqdm import tqdm
+import pkgutil
+from io import BytesIO
+import argparse
 
 warnings.filterwarnings(
     "ignore", message="torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling."
 )
 
-import numpy as np
-import torch
-# import ContigNet.util as util
-from . import util, VirusCNN_siamese
-from tqdm import tqdm
-import pkgutil
-from io import BytesIO
-
-# from scripts.train_model import test, evaluate_performance, load_virus_onehot
-
-import argparse
 
 def main():
     parser = argparse.ArgumentParser(
@@ -58,12 +47,6 @@ def main():
         print("CUDA is not available or CPU is explicitly selected for use. Using CPU.")
         device = torch.device("cpu")
 
-    # model = BytesIO(pkgutil.get_data("ContigNet", "models/final_model"))
-    # print(len(pkgutil.get_data("ContigNet", "models/final_model")))
-    # print(type(model))
-    # print(model)
-    # model = torch.load(model, map_location=device)
-    # model = torch.load("models/final_model", map_location=device)
     model = VirusCNN_siamese.VirusCNN(share_weight=True).to(device)
     model.load_state_dict(torch.load(BytesIO(pkgutil.get_data("ContigNet", "models/model.dict")), map_location=device))
 
@@ -113,6 +96,7 @@ def main():
                         raise e
                 result_df.loc[host_name, virus_name] = output
     result_df.to_csv(args.output)
+
 
 if __name__ == "__main__":
     main()
