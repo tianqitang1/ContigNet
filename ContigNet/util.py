@@ -9,6 +9,7 @@ from typing import List, Optional
 import pandas as pd
 from ete3 import NCBITaxa
 from Bio import SeqIO
+import math
 
 ncbi = NCBITaxa()
 NT_DICT = {"A": 0, "C": 1, "G": 2, "T": 3}
@@ -431,3 +432,72 @@ def tuple_list_to_dict_set(l):
     added to the same set for that key.
     """
     return dict((k, set([v[1] for v in itr])) for k, itr in groupby(l, itemgetter(0)))
+
+def load_virus_onehot(virus_dir, virus_list):
+    """Load all virus onehot matrices into memory
+
+    :param virus_dir: path to directory storing virus onehot matrices
+    :type virus_dir: str
+    :param virus_list:
+    :type virus_list: Union[list, set]
+    :return: dictionary mapping given virus name to onehot matrix
+    :rtype: dict
+    """
+    virus_onehot_filename = [virus + ".fasta.npy" for virus in virus_list]
+    virus_onehot = {}
+
+    for filename in virus_onehot_filename:
+        virus_onehot_id = filename[:-10]
+        onehot = np.load(os.path.join(virus_dir, filename))
+        onehot = onehot[:, :4]
+        assert len(onehot.shape) == 2 and onehot.shape[1] == 4, "One hot shape incorrect"
+        virus_onehot[virus_onehot_id] = onehot
+    return virus_onehot
+
+
+def load_host_onehot(host_dir, host_set, host_taxid_to_fasta):
+    """
+
+    :param host_dir: path to directory storing host onehot matrices
+    :param host_set:
+    :param host_taxid_to_fasta:
+    :return:
+    """
+    host_onehot_filename = []
+    for host in host_set:
+        host_onehot_filename.extend([fasta + ".npy" for fasta in host_taxid_to_fasta[host]])
+    host_onehot = {}
+
+    for filename in host_onehot_filename:
+        host_fn = filename[:-4]
+        onehot = np.load(os.path.join(host_dir, filename)).astype(np.int8)
+        onehot = onehot[:, :4]
+        assert len(onehot.shape) == 2 and onehot.shape[1] == 4, "One hot shape incorrect"
+        host_onehot[host_fn] = onehot
+    return host_onehot
+
+def train_test_split(virus_host_pair, train_ratio=0.8, host_taxon_level='genus', training_only=False):
+    if training_only:
+        return virus_host_pair, []
+    train_boundary = math.floor(len(virus_host_pair) * train_ratio)
+    init_train_pair_list = virus_host_pair[:train_boundary]
+    init_test_pair_list = virus_host_pair[train_boundary:]
+    virus_train_test_intersection = set(list(zip(*init_train_pair_list))[0]).intersection(
+        set(list(zip(*init_test_pair_list))[0])
+    )
+    # host_train_test_intersection = set(list(zip(*init_train_pair_list))[1]).intersection(
+    #     set(list(zip(*init_test_pair_list))[1])
+    # )
+    host_train_test_intersection = set()
+    host_train_genus = set()
+    host_test_genus = set()
+    for host in set(list(zip(*init_train_pair_list))[1]):
+        host_train_genus.add(get_rank(host, host_taxon_level))
+    for host in set(list(zip(*init_test_pair_list))[1]):
+        host_test_genus.add(get_rank(host, host_taxon_level))
+    for host in set(list(zip(*init_train_pair_list))[1]):
+        if get_rank(host, host_taxon_level) in host_test_genus:
+            host_train_test_intersection.add(host)
+    for host in set(list(zip(*init_test_pair_list))[1]):
+        if get_rank(host, host_taxon_level) in host_train_genus:
+            host_train_test_intersection.add(host)

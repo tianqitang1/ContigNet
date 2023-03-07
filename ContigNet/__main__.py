@@ -8,7 +8,7 @@ import pandas as pd
 
 from matplotlib import pyplot as plt
 import matplotlib as mpl
-from scripts.train_model import load_host_onehot, train_test_split
+# from util import load_host_onehot, train_test_split
 from typing import List
 
 sys.path.append("..")
@@ -21,10 +21,13 @@ warnings.filterwarnings(
 
 import numpy as np
 import torch
-import ContigNet.util as util
+# import ContigNet.util as util
+import util
 from tqdm import tqdm
+import pkgutil
+from io import BytesIO
 
-from scripts.train_model import test, evaluate_performance, load_virus_onehot
+# from scripts.train_model import test, evaluate_performance, load_virus_onehot
 
 import argparse
 
@@ -60,7 +63,9 @@ if __name__ == "__main__":
         print("CUDA is not available or CPU is explicitly selected for use. Using CPU.")
         device = torch.device("cpu")
 
-    model = torch.load("model", map_location=device)
+    model = BytesIO(pkgutil.get_data("ContigNet", "models/final_model"))
+    model = torch.load(model, map_location=device)
+    # model = torch.load("models/final_model", map_location=device)
 
     host_list = os.listdir(args.host_dir)
     host_list.sort()
