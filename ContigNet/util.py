@@ -5,7 +5,7 @@ import numpy as np
 import csv
 import pickle
 import statsmodels.api as sm
-from typing import List
+from typing import List, Optional
 import pandas as pd
 from ete3 import NCBITaxa
 from Bio import SeqIO
@@ -219,19 +219,40 @@ def construct_data(index, *features):
 
 
 def nt2index(nucleotide: str):
+    """
+    Given a nucleotide character, return its corresponding index.
+
+    Parameters
+    ----------
+    nucleotide : str
+        The nucleotide character to convert to an index.
+
+    Returns
+    -------
+    int
+        The index of the nucleotide. If the nucleotide is not A, C, G, or T,
+        returns 4.
+
+    """
     nucleotide = nucleotide.upper()
     return NT_DICT.get(nucleotide, 4)
 
 
-def seq2intseq(seq, contig_length=None):
-    """Convert genome sequence into indexed sequence
+def seq2intseq(seq: str, contig_length: Optional[int] = None) -> np.ndarray:
+    """
+    Convert genome sequence into indexed sequence
 
-    :param seq: genome sequence
-    :type seq: str
-    :param contig_length: If designated, sample a subsequence with length contig_length from the original sequence, defaults to None
-    :type contig_length: int, optional
-    :return: A numpy array
-    :rtype: np.ndarray
+    Parameters
+    ----------
+    seq : str
+        Genome sequence
+    contig_length : int, optional
+        If designated, sample a subsequence with length contig_length from the original sequence, defaults to None
+
+    Returns
+    -------
+    np.ndarray
+        Indexed sequence as a numpy array
     """
     if contig_length:
         if len(seq) <= contig_length:
@@ -245,7 +266,7 @@ def seq2intseq(seq, contig_length=None):
         return np.array(list(map(nt2index, str(seq))))
 
 
-def int2onehot(array):
+def int2onehot(array: np.ndarray) -> np.ndarray:
     """
     Convert an integer array to one-hot encoded array.
 
@@ -274,14 +295,71 @@ def int2onehot(array):
     return np.eye(int(n))[array.astype(int)]
 
 
-def seq2onehot(seq, contig_length=None):
+def seq2onehot(seq: str, contig_length: Optional[int] = None) -> np.ndarray:
+    """
+    Convert a DNA sequence string to a one-hot encoded array.
+
+    Parameters
+    ----------
+    seq : str
+        A DNA sequence string to be one-hot encoded.
+    contig_length : int or None, optional
+        The length of the input contig. If provided, the input sequence
+        will be padded with subsampled with this length, by default None.
+
+    Returns
+    -------
+    np.ndarray
+        A 2D one-hot encoded array.
+
+    Examples
+    --------
+    >>> seq = 'ATCG'
+    >>> seq2onehot(seq)
+    array([[1., 0., 0., 0.],
+           [0., 1., 0., 0.],
+           [0., 0., 1., 0.],
+           [0., 0., 0., 1.]])
+
+    """
     assert isinstance(seq, str), "Input should be str"
     int_seq = seq2intseq(seq, contig_length)
     onehot = int2onehot(int_seq)
     return onehot
 
 
-def fasta2onehot(path, contig_length=None):
+def fasta2onehot(path: str, contig_length: Optional[int] = None) -> np.ndarray:
+    """
+    Convert a multi-sequence fasta file to a one-hot encoded array.
+
+    Parameters
+    ----------
+    path : str
+        The path to the input fasta file.
+    contig_length : int or None, optional
+        The length of the input contigs. If provided, the input sequences
+        will be subsampled with this length, by default None.
+
+    Returns
+    -------
+    np.ndarray
+        A 2D one-hot encoded array.
+
+    Examples
+    --------
+    >>> path = 'path/to/file.fasta'
+    >>> fasta2onehot(path)
+    array([[1., 0., 0., 0.],
+           [0., 1., 0., 0.],
+           [0., 0., 1., 0.],
+           [0., 0., 0., 1.],
+           ...
+           [1., 0., 0., 0.],
+           [0., 1., 0., 0.],
+           [0., 0., 1., 0.],
+           [0., 0., 0., 1.]])
+
+    """
     seq = [str(s.seq) for s in SeqIO.parse(path, 'fasta')]
     seq = ''.join(seq)
     return seq2onehot(seq, contig_length)
