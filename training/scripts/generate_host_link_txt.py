@@ -6,7 +6,7 @@ from Bio import SeqIO
 import pandas as pd
 import os
 from ete3 import NCBITaxa
-import util
+import ContigNet.util as util
 
 import argparse
 
@@ -41,7 +41,7 @@ util.save_obj(metadata_selected, os.path.join(data_dir, 'metadata_selected.pkl')
 import math
 import random
 
-from util import seq2intseq, int2onehot
+from ContigNet.util import seq2intseq, int2onehot
 
 # Parse GanBank summary
 summary_path = '../data/assembly_summary.txt'

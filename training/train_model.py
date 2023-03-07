@@ -14,10 +14,10 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.tensorboard.summary import hparams
 from sklearn import metrics
 import time
-import util
+import ContigNet.util as util
 import pandas as pd
 
-from VirusCNN_siamese import VirusCNN
+from ContigNet.VirusCNN_siamese import VirusCNN
 
 import argparse
 

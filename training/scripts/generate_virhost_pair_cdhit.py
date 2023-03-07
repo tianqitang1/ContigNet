@@ -1,7 +1,7 @@
 import sys
 sys.path.append('..')
 
-import util
+import ContigNet.util as util
 import pandas as pd
 import os
 

@@ -1,27 +1,23 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
 import itertools
 
 
 class VirusCNN(nn.Module):
-    def __init__(self, channel='both', rev_comp=False, share_weight=False) -> None:
+    def __init__(self, channel="both", rev_comp=False, share_weight=False) -> None:
         super().__init__()
 
         self.channel = channel
         self.rev_comp = rev_comp
         self.share_weight = share_weight
 
-        if self.channel == 'both':
+        if self.channel == "both":
             fc_layer_input_dim = 1024
         else:
             fc_layer_input_dim = 512
         self.fc = nn.Sequential(
-            nn.Linear(fc_layer_input_dim, 128),
-            nn.ReLU(inplace=True),
-            nn.Dropout(p=0.5),
-            nn.Linear(128, 1)
+            nn.Linear(fc_layer_input_dim, 128), nn.ReLU(inplace=True), nn.Dropout(p=0.5), nn.Linear(128, 1)
         )
 
         self.codon_channel_num = 64
@@ -100,16 +96,10 @@ class VirusCNN(nn.Module):
 
         self.codon_transformer = CodonTransformer()
 
-        self.global_avg_pool = nn.Sequential(
-            nn.AdaptiveAvgPool1d(1),
-            nn.Flatten()
-        )
+        self.global_avg_pool = nn.Sequential(nn.AdaptiveAvgPool1d(1), nn.Flatten())
 
-        self.global_max_pool = nn.Sequential(
-            nn.AdaptiveMaxPool1d(1),
-            nn.Flatten()
-        )
-    
+        self.global_max_pool = nn.Sequential(nn.AdaptiveMaxPool1d(1), nn.Flatten())
+
     @staticmethod
     def build_rev_comp(x: torch.Tensor):
         return torch.flip(x, [-1, -2])
@@ -120,7 +110,7 @@ class VirusCNN(nn.Module):
             x = torch.cat((x, x_rev_comp), dim=-2)
             y_rev_comp = self.build_rev_comp(y)
             y = torch.cat((y, y_rev_comp), dim=-2)
-        if self.channel == 'both':
+        if self.channel == "both":
             x1 = self.base_channel1(x)
             y1 = self.base_channel2(y)
 
@@ -133,13 +123,13 @@ class VirusCNN(nn.Module):
             z = torch.cat((x, x1, y, y1), dim=1)
             # z = self.dropout(z)
             z = self.fc(z)
-        elif self.channel == 'base':
+        elif self.channel == "base":
             x = self.base_channel1(x)
             y = self.base_channel2(y)
 
             z = torch.cat((x, y), dim=1)
             z = self.fc(z)
-        elif self.channel == 'codon':
+        elif self.channel == "codon":
             x = self.codon_transformer(x)
             y = self.codon_transformer(y)
 
@@ -150,6 +140,7 @@ class VirusCNN(nn.Module):
             z = self.fc(z)
 
         return z
+
 
 class CodonTransformer(nn.Module):
     def __init__(self) -> None:
@@ -164,7 +155,6 @@ class CodonTransformer(nn.Module):
         self.codon_transformer = nn.Parameter(self.codon_transformer, requires_grad=False)
         self.padding_layers = [nn.ZeroPad2d((0, 0, 0, 2)), nn.ZeroPad2d((0, 0, 0, 1))]
 
-
     def forward(self, x):
         mod_len = int(x.shape[2] % 3)
         if mod_len != 2:
@@ -173,7 +163,7 @@ class CodonTransformer(nn.Module):
         x = F.relu(x)
         x = x.flatten(start_dim=2)
 
-        x = x.view(-1, self.codon_channel_num, int(x.shape[2]//3), 3)
+        x = x.view(-1, self.codon_channel_num, int(x.shape[2] // 3), 3)
         x = x.transpose(2, 3)
-        x = x.reshape(-1, 1, self.codon_channel_num, x.shape[-1]*3).transpose(2, 3)
+        x = x.reshape(-1, 1, self.codon_channel_num, x.shape[-1] * 3).transpose(2, 3)
         return x
