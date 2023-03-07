@@ -21,11 +21,6 @@ warnings.filterwarnings(
 
 import numpy as np
 import torch
-import torch.nn as nn
-from torch.cuda.amp import autocast, GradScaler
-from torch.utils.tensorboard import SummaryWriter
-from sklearn import metrics
-import time
 import ContigNet.util as util
 from tqdm import tqdm
 
