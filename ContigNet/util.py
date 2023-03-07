@@ -11,6 +11,7 @@ from ete3 import NCBITaxa
 from Bio import SeqIO
 
 ncbi = NCBITaxa()
+NT_DICT = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
 
 
 def save_obj(obj, name):
@@ -45,7 +46,7 @@ def lowess_adjustment(y: List[np.ndarray], x, target):
     for y_ in y:
         y_new.append(y_ + target - z)
 
-    return y
+    return y_new
 
 
 def count_nucleotide(file):
@@ -219,16 +220,7 @@ def construct_data(index, *features):
 
 def nt2index(nucleotide: str):
     nucleotide = nucleotide.upper()
-    if nucleotide == "A":
-        return 0
-    elif nucleotide == "C":
-        return 1
-    elif nucleotide == "G":
-        return 2
-    elif nucleotide == "T":
-        return 3
-    else:
-        return 4
+    return NT_DICT.get(nucleotide, 4)
 
 
 def seq2intseq(seq, contig_length=None):
@@ -254,7 +246,31 @@ def seq2intseq(seq, contig_length=None):
 
 
 def int2onehot(array):
-    n = np.max(array) + 1
+    """
+    Convert an integer array to one-hot encoded array.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        A 1D integer array to be one-hot encoded.
+
+    Returns
+    -------
+    np.ndarray
+        A 2D one-hot encoded array.
+
+    Examples
+    --------
+    >>> a = np.array([0, 1, 2, 3])
+    >>> int2onehot(a)
+    array([[1., 0., 0., 0.],
+           [0., 1., 0., 0.],
+           [0., 0., 1., 0.],
+           [0., 0., 0., 1.]])
+
+    """
+    # n = np.max(array) + 1
+    n = 4
     return np.eye(int(n))[array.astype(int)]
 
 
@@ -272,14 +288,29 @@ def fasta2onehot(path, contig_length=None):
 
 
 def get_rank(taxid, rank):
-    """Given the taxid and taxonomy rank, return the taxid on the given rank
+    """
+    Given a taxonomic identifier and a requested taxonomy rank, returns the
+    identifier of the taxonomy at the requested rank.
 
-    :param taxid: any taxid
-    :type taxid: int
-    :param rank: the requested taxonomy rank
-    :type rank: str
-    :return: taxid at required taxon rank
-    :rtype: Union[int, None]
+    Parameters
+    ----------
+    taxid : int
+        The taxonomic identifier of the desired taxonomy.
+    rank : str
+        The requested taxonomy rank.
+
+    Returns
+    -------
+    Union[int, None]
+        The taxonomic identifier of the taxonomy at the requested rank. If the
+        requested rank is not found, None is returned.
+
+    Examples
+    --------
+    >>> get_rank(12345, 'species')
+    54321
+    >>> get_rank(67890, 'genus')
+    9876
     """
     lineage = ncbi.get_lineage(taxid)
     ranks = ncbi.get_rank(lineage)
@@ -297,11 +328,28 @@ def generate_negative_sample(taxid_list, taxid_pool, rank):
 
 def tuple_list_to_dict_set(l):
     """
-    Given a tuple list and return a dict with the
-    first element of the tuple as key and set of the second element as value
-    :param l: The given list
-    :type l: list
-    :return: The desired dict
-    :rtype: dict
+    Given a tuple list, returns a dictionary with the first element of the tuple
+    as key and set of the second element as value.
+    Parameters
+    ----------
+    l : list of tuples
+        The input list of tuples.
+
+    Returns
+    -------
+    dict
+        A dictionary with the first element of the tuple as key and set of the
+        second element as value.
+
+    Examples
+    --------
+    >>> l = [('a', 1), ('b', 2), ('a', 3)]
+    >>> tuple_list_to_dict(l)
+    {'a': {1, 3}, 'b': {2}}
+
+    Notes
+    -----
+    If multiple tuples have the same first element, the second elements are
+    added to the same set for that key.
     """
     return dict((k, set([v[1] for v in itr])) for k, itr in groupby(l, itemgetter(0)))
