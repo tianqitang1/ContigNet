@@ -11,7 +11,7 @@ from ete3 import NCBITaxa
 from Bio import SeqIO
 
 ncbi = NCBITaxa()
-NT_DICT = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+NT_DICT = {"A": 0, "C": 1, "G": 2, "T": 3}
 
 
 def save_obj(obj, name):
@@ -360,8 +360,8 @@ def fasta2onehot(path: str, contig_length: Optional[int] = None) -> np.ndarray:
            [0., 0., 0., 1.]])
 
     """
-    seq = [str(s.seq) for s in SeqIO.parse(path, 'fasta')]
-    seq = ''.join(seq)
+    seq = [str(s.seq) for s in SeqIO.parse(path, "fasta")]
+    seq = "".join(seq)
     return seq2onehot(seq, contig_length)
 
 
