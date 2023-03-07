@@ -1,5 +1,7 @@
 # ContigNet: Phage-bacteria contig interaction prediction with convolutional neural network
 
+[![Tests](https://github.com/tianqitang1/ContigNet/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/tianqitang1/ContigNet/actions/workflows/tests.yml)
+
 The paper has been published at <https://doi.org/10.1093/bioinformatics/btac239>
 
 Version: 1.0.1
@@ -25,19 +27,18 @@ git clone https://github.com/tianqitang1/ContigNet
 cd ContigNet
 ```
 
-To install required dependencies a [Anaconda](https://www.anaconda.com/products/individual) or [Miniconda](https://conda.io/miniconda.html) installation is required. After a conda distribution is installed, create and activate a ```conda``` virtual environment with the following commands
+To install required dependencies a [Anaconda](https://www.anaconda.com/products/individual) or [Miniconda](https://conda.io/miniconda.html) installation is recommended for managing virtual environments. After a conda distribution is installed, create and activate a ```conda``` virtual environment with the following commands
 
  ``` bash
  conda create --name ContigNet
  conda activate ContigNet
- conda install numpy pandas scikit-learn matplotlib ete3 statsmodels biopython tensorboard
- conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch (choose CUDA, ROCm or CPU according to your machine)
+ pip install .
  ```
 
 ## Usage
 
 ``` bash
-usage: ContigNet.py [-h] [--host_dir HOST_DIR] [--virus_dir VIRUS_DIR]
+usage: ContigNet [-h] [--host_dir HOST_DIR] [--virus_dir VIRUS_DIR]
                     [--output, -o OUTPUT] [--cpu]
 
 ContigNet, a deep learning based phage-host interaction prediction tool
@@ -60,12 +61,18 @@ optional arguments:
 Suppose the phage and host sequences are stored in ```phage``` and ```host``` directories respectively, running
 
 ``` bash
-python ContigNet.py --host_dir host --virus_dir phage
+ContigNet --host_dir host --virus_dir phage
 ```
 
-And the likelihood of each phage interacting with each host will be output to ```result.csv```.
+and the likelihood of each phage interacting with each host will be output to ```result.csv```.
 
-### Feature extractor mode
+For Windows machine, run
+
+``` PowerShell
+python -m ContigNet --host_dir host --virus_dir phage
+```
+
+<!-- ### Feature extractor mode -->
 
 ## Paper related
 
