@@ -1,1 +1,5 @@
-recursive-include src *
+include LICENSE
+include README.md
+include pyproject.toml
+graft src
+global-exclude __pycache__
