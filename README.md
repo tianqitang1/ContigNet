@@ -20,7 +20,19 @@ Existing Deep learning based methods are not able to solve the particular questi
 
 ## Installation
 
-To use the software, download and enter the repository by
+The software is available at PyPI and Bioconda now, to install, run
+
+``` bash
+pip install ContigNet
+```
+
+or
+
+``` bash
+conda install -c bioconda contignet
+```
+
+To install the software from source, download and enter the repository by
 
 ``` bash
 git clone https://github.com/tianqitang1/ContigNet
