@@ -94,7 +94,14 @@ def main(host_dir, virus_dir, output, cpu, show_preview):
     console.print(f"[cyan]→[/cyan] Found {len(virus_list)} virus contig(s)")
     console.print(f"[cyan]→[/cyan] Processing {len(host_list) * len(virus_list)} pair(s)")
 
-    result_df = pd.DataFrame(np.zeros((len(host_list), len(virus_list))), columns=virus_name_list, index=host_name_list)
+    result_df = pd.DataFrame(
+        np.zeros((len(host_list), len(virus_list))),
+        columns=virus_name_list,
+        index=host_name_list,
+    )
+
+    # Preserve the CLI output path before we start computing prediction scores
+    output_path = output
 
     # Process predictions
     with torch.no_grad():
@@ -127,9 +134,18 @@ def main(host_dir, virus_dir, output, cpu, show_preview):
                         host_tensor = torch.Tensor(host_onehot).to(device)[None, None, :, :]
                         virus_tensor = torch.Tensor(virus_onehot).to(device)[None, None, :, :]
                         if str(device) != "cpu":
-                            output = torch.sigmoid(model(host_tensor, virus_tensor)).cpu().numpy().flatten()[0]
+                            score = (
+                                torch.sigmoid(model(host_tensor, virus_tensor))
+                                .cpu()
+                                .numpy()
+                                .flatten()[0]
+                            )
                         else:
-                            output = torch.sigmoid(model(host_tensor, virus_tensor)).numpy().flatten()[0]
+                            score = (
+                                torch.sigmoid(model(host_tensor, virus_tensor))
+                                .numpy()
+                                .flatten()[0]
+                            )
                     except RuntimeError as e:  # Fallback in case of out of GPU memory
                         if "CUDA error: out of memory" in str(e):
                             console.print("[yellow]⚠[/yellow] GPU out of memory, falling back to CPU")
@@ -137,19 +153,23 @@ def main(host_dir, virus_dir, output, cpu, show_preview):
                             model = model.to("cpu")
                             host_tensor = torch.Tensor(host_onehot)[None, None, :, :]
                             virus_tensor = torch.Tensor(virus_onehot)[None, None, :, :]
-                            output = torch.sigmoid(model(host_tensor, virus_tensor)).numpy().flatten()[0]
+                            score = (
+                                torch.sigmoid(model(host_tensor, virus_tensor))
+                                .numpy()
+                                .flatten()[0]
+                            )
                         else:
                             raise e
                     # Convert numpy scalar to Python float for pandas compatibility
-                    result_df.loc[host_name, virus_name] = float(output)
+                    result_df.loc[host_name, virus_name] = float(score)
                     progress.update(virus_task, advance=1)
 
                 progress.remove_task(virus_task)
                 progress.update(host_task, advance=1)
 
     # Save results
-    result_df.to_csv(output)
-    console.print(f"[green]✓[/green] Results saved to: [bold]{output}[/bold]")
+    result_df.to_csv(output_path)
+    console.print(f"[green]✓[/green] Results saved to: [bold]{output_path}[/bold]")
 
     # Show preview if requested
     if show_preview:

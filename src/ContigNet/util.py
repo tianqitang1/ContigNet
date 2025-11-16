@@ -11,7 +11,40 @@ import math
 from io import StringIO
 from pathlib import Path
 
-ncbi = NCBITaxa()
+_ncbi: Optional[NCBITaxa] = None
+
+
+def get_ncbi_taxa() -> NCBITaxa:
+    """Lazily initialize and return a shared ``NCBITaxa`` instance.
+
+    The :mod:`ete3` ``NCBITaxa`` helper downloads taxonomy data the first
+    time it is instantiated, which fails in restricted or offline
+    environments (e.g., continuous integration).  To avoid triggering the
+    download unless taxonomy utilities are explicitly used, the instance is
+    created on demand.
+
+    Returns
+    -------
+    NCBITaxa
+        A cached ``NCBITaxa`` instance ready for use.
+
+    Raises
+    ------
+    RuntimeError
+        If the ``NCBITaxa`` database cannot be initialized.  The original
+        exception is chained for easier debugging.
+    """
+
+    global _ncbi
+    if _ncbi is None:
+        try:
+            _ncbi = NCBITaxa()
+        except Exception as exc:  # pragma: no cover - depends on network availability
+            raise RuntimeError(
+                "Unable to initialize the NCBI taxonomy database. "
+                "Ensure the database is available or run in an environment with network access."
+            ) from exc
+    return _ncbi
 NT_DICT = {"A": 0, "C": 1, "G": 2, "T": 3}
 
 
@@ -348,6 +381,7 @@ def get_rank(taxid, rank):
     >>> get_rank(67890, 'genus')
     9876
     """
+    ncbi = get_ncbi_taxa()
     lineage = ncbi.get_lineage(taxid)
     ranks = ncbi.get_rank(lineage)
     ranks = {ranks[key]: key for key in ranks.keys()}
