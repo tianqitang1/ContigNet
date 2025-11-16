@@ -140,7 +140,8 @@ def main(host_dir, virus_dir, output, cpu, show_preview):
                             output = torch.sigmoid(model(host_tensor, virus_tensor)).numpy().flatten()[0]
                         else:
                             raise e
-                    result_df.loc[host_name, virus_name] = output
+                    # Convert numpy scalar to Python float for pandas compatibility
+                    result_df.loc[host_name, virus_name] = float(output)
                     progress.update(virus_task, advance=1)
 
                 progress.remove_task(virus_task)
