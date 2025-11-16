@@ -8,7 +8,6 @@ import pandas as pd
 from ete3 import NCBITaxa
 from Bio import SeqIO
 import math
-from Bio.Blast.Applications import NcbiblastnCommandline
 from io import StringIO
 from pathlib import Path
 
@@ -163,6 +162,15 @@ def blast_single(fasta_path, db_path):
     :param db_path:
     :return:
     """
+    # Lazy import to avoid requiring old Biopython version for main CLI
+    try:
+        from Bio.Blast.Applications import NcbiblastnCommandline
+    except ImportError:
+        raise ImportError(
+            "Bio.Blast.Applications is not available. "
+            "This function requires Biopython < 1.78. "
+            "Install with: pip install biopython<1.78"
+        )
 
     def cal_perc(x):
         indicator = [0] * x[4]
