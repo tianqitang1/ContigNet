@@ -26,6 +26,7 @@ jobs:
     - name: Install dependencies and package
       run: |
         uv sync --dev
+        uv pip install -e . --no-deps --force-reinstall
 
     - name: Run tests with pytest
       run: |
