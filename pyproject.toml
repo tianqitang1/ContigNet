@@ -1,6 +1,69 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ContigNet"
+dynamic = ["version"]
+description = "ContigNet, a deep learning based phage-host interaction prediction tool"
+readme = "README.md"
+license = { text = "USC-RL v1.0" }
+authors = [
+    { name = "Tianqi Tang", email = "tianqit@usc.edu" }
+]
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: Other/Proprietary License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "numpy",
+    "scipy",
+    "scikit-learn",
+    "torch",
+    "click>=8.0",
+    "rich>=10.0",
+    "matplotlib",
+    "pandas",
+    "seaborn",
+    "pyyaml",
+    "tensorboard",
+    "h5py",
+    "ete3",
+    "biopython",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+    "mypy>=0.910",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+ContigNet = "ContigNet.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/tianqitang1/ContigNet"
+Repository = "https://github.com/tianqitang1/ContigNet"
+Issues = "https://github.com/tianqitang1/ContigNet/issues"
+
+[tool.hatch.version]
+path = "src/ContigNet/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ContigNet"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=ContigNet"
@@ -21,3 +84,23 @@ warn_return_any = true
 warn_unreachable = true
 warn_unused_configs = true
 no_implicit_reexport = true
+
+[tool.ruff]
+line-length = 160
+exclude = [
+    "5yr",
+    "training",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]

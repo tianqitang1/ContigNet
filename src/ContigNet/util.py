@@ -155,69 +155,6 @@ def remove_plasmid_seq(input_dir_path, output_dir_path):
         output_handle.close()
 
 
-def blast_single(fasta_path, db_path):
-    """Blast the given fasta file to a NCBI database and calculate the percentage of aligned regions
-
-    :param fasta_path:
-    :param db_path:
-    :return:
-    """
-    # Lazy import to avoid requiring old Biopython version for main CLI
-    try:
-        from Bio.Blast.Applications import NcbiblastnCommandline
-    except ImportError:
-        raise ImportError(
-            "Bio.Blast.Applications is not available. "
-            "This function requires Biopython < 1.78. "
-            "Install with: pip install biopython<1.78"
-        )
-
-    def cal_perc(x):
-        indicator = [0] * x[4]
-        for i in range(len(x[2])):
-            indicator[x[2][i]: x[3][i]] = [1] * (x[3][i] - x[2][i] + 1)
-        return sum(indicator)
-
-    blastn_cline = NcbiblastnCommandline(
-        query=fasta_path, db=db_path, outfmt="6 qacc sacc qstart qend qlen", num_threads=8
-    )
-    stdout, stderr = blastn_cline()
-    if stdout == "":
-        blast_success = False
-        return blast_success, None
-    blastn_output = StringIO(stdout)
-    df = pd.read_csv(blastn_output, sep="\t", header=None)
-
-    seqacc_to_hostacc_dict = load_obj("seqacc_to_hostacc.pkl")
-    df[1] = [seqacc_to_hostacc_dict[k] for k in list(df[1])]
-
-    df_blast_positions = df.groupby([0, 1]).agg({2: lambda x: tuple(x - 1), 3: lambda x: tuple(x - 1), 4: min})
-    df_blast_positions.index = df_blast_positions.index.droplevel()
-    query_len = len(SeqIO.parse(fasta_path, "fasta").__next__())
-    df_blast_perc = df_blast_positions.apply(lambda x: cal_perc(x), axis=1) / query_len
-    sr_blast = df_blast_perc.groupby(level=0, sort=False).apply(sum)
-    blast_success = True
-    return blast_success, sr_blast
-
-
-def blast_dir_to_db(query_dir, db_path):
-    """
-    Given query directory with fasta and subject directory with fasta,
-    :param query_dir:
-    :param subject_dir:
-    :return:
-    """
-    query_list = os.listdir(query_dir)
-    query_list.sort()
-    blast_results = {}
-    for q in query_list:
-        print("Calculating blast score for ", q)
-        query_path = os.path.join(query_dir, q)
-        blast_single_result = blast_single(query_path, db_path)
-        blast_results[q[:-3]] = blast_single_result
-    return blast_results
-
-
 def cosine_similarity(f1, f2):
     n1 = np.linalg.norm(f1, axis=1, keepdims=True)
     n2 = np.linalg.norm(f2, axis=1, keepdims=True)

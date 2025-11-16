@@ -20,68 +20,117 @@ Existing Deep learning based methods are not able to solve the particular questi
 
 ## Installation
 
-The software is available at PyPI and Bioconda now, to install, run
+### From PyPI (Recommended)
+
+The software is available on PyPI. To install:
 
 ``` bash
 pip install ContigNet
 ```
 
-or
+Or with [uv](https://github.com/astral-sh/uv) (faster):
+
+``` bash
+uv pip install ContigNet
+```
+
+### From Conda
 
 ``` bash
 conda install -c bioconda contignet
 ```
 
-To install the software from source, download and enter the repository by
+### From Source
+
+#### Using uv (Recommended)
+
+[uv](https://github.com/astral-sh/uv) is a fast Python package manager. First, install uv:
+
+``` bash
+# On macOS and Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# On Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Then install ContigNet from source:
 
 ``` bash
 git clone https://github.com/tianqitang1/ContigNet
 cd ContigNet
+uv sync
 ```
 
-To install required dependencies a [Anaconda](https://www.anaconda.com/products/individual) or [Miniconda](https://conda.io/miniconda.html) installation is recommended for managing virtual environments. After a conda distribution is installed, create and activate a ```conda``` virtual environment with the following commands
+This will create a virtual environment and install all dependencies automatically.
 
- ``` bash
- conda create --name ContigNet
- conda activate ContigNet
- pip install .
- ```
+#### Using pip
+
+Alternatively, you can use pip with a traditional virtual environment:
+
+``` bash
+git clone https://github.com/tianqitang1/ContigNet
+cd ContigNet
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -e .
+```
 
 ## Usage
 
-``` bash
-usage: ContigNet [-h] [--host_dir HOST_DIR] [--virus_dir VIRUS_DIR]
-                    [--output, -o OUTPUT] [--cpu]
+```
+Usage: ContigNet [OPTIONS]
 
-ContigNet, a deep learning based phage-host interaction prediction tool
+  ContigNet: A deep learning based phage-host interaction prediction tool
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --host_dir HOST_DIR   Directory containing host contig sequences in fasta
-                        format (default: demo/host_fasta)
-  --virus_dir VIRUS_DIR
-                        Directory containing virus contig sequences in fasta
-                        format (default: demo/virus_fasta)
-  --output, -o OUTPUT   Path to output file (default: result.csv)
-  --cpu                 Force using CPU if specified (default: False)
+  Predicts phage-host contig interactions using a convolutional neural
+  network.
+
+Options:
+  --host-dir, -ho PATH   Directory containing host contig sequences in fasta
+                         format  [default: demo/host_fasta]
+  --virus-dir, -vi PATH  Directory containing virus contig sequences in fasta
+                         format  [default: demo/virus_fasta]
+  --output, -o PATH      Path to output file  [default: result.csv]
+  --cpu                  Force using CPU if specified
+  --show-preview         Show a preview table of top predictions
+  --help                 Show this message and exit.
 ```
 
 ## Examples
 
 ### Test new contigs
 
-Suppose the phage and host sequences are stored in ```phage``` and ```host``` directories respectively, running
+Suppose the phage and host sequences are stored in ```phage``` and ```host``` directories respectively:
 
 ``` bash
-ContigNet --host_dir host --virus_dir phage
+ContigNet --host-dir host --virus-dir phage
 ```
 
-and the likelihood of each phage interacting with each host will be output to ```result.csv```.
+The likelihood of each phage interacting with each host will be output to ```result.csv```.
 
-For Windows machine, run
+### Show preview of results
+
+To see the top 10 predictions in a nice table:
+
+``` bash
+ContigNet --host-dir host --virus-dir phage --show-preview
+```
+
+### Run with uv
+
+If you installed from source with uv:
+
+``` bash
+uv run ContigNet --host-dir host --virus-dir phage
+```
+
+### Windows
+
+On Windows, you can also run:
 
 ``` PowerShell
-python -m ContigNet --host_dir host --virus_dir phage
+python -m ContigNet --host-dir host --virus-dir phage
 ```
 
 <!-- ### Feature extractor mode -->
