@@ -23,7 +23,7 @@ jobs:
     - name: Set up Python ${{ matrix.python-version }}
       run: uv python install ${{ matrix.python-version }}
 
-    - name: Install dependencies
+    - name: Install dependencies and package
       run: |
         uv sync --dev
 
