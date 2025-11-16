@@ -43,6 +43,14 @@ dependencies = [
     "biopython",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+    "mypy>=0.910",
+    "ruff>=0.1.0",
+]
+
 [project.optional-dependencies]
 dev = [
     "pytest>=6.0",
