@@ -1,15 +1,14 @@
+import math
+import os
+import pickle
 from itertools import groupby
 from operator import itemgetter
-import os
-import numpy as np
-import pickle
-from typing import Optional, Any
-import pandas as pd
-from ete3 import NCBITaxa
-from Bio import SeqIO
-import math
-from io import StringIO
 from pathlib import Path
+from typing import Any, Optional
+
+import numpy as np
+from Bio import SeqIO
+from ete3 import NCBITaxa
 
 _ncbi: Optional[NCBITaxa] = None
 
@@ -422,7 +421,7 @@ def tuple_list_to_dict_set(list):
     If multiple tuples have the same first element, the second elements are
     added to the same set for that key.
     """
-    return dict((k, set([v[1] for v in itr])) for k, itr in groupby(list, itemgetter(0)))
+    return {k: {v[1] for v in itr} for k, itr in groupby(list, itemgetter(0))}
 
 
 def load_virus_onehot(virus_dir, virus_list):

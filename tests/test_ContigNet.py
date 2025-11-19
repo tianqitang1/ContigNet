@@ -1,7 +1,9 @@
 import os
 import sys
-import ContigNet
+
 from click.testing import CliRunner
+
+import ContigNet
 from ContigNet.__main__ import main
 
 __all__ = ['ContigNet',]

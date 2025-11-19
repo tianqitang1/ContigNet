@@ -1,19 +1,21 @@
 #!/usr/bin/env python
 
 import os
-import pandas as pd
-import warnings
-import numpy as np
-import torch
-from . import util, VirusCNN_siamese
 import pkgutil
+import warnings
 from io import BytesIO
+
 import click
-from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TimeRemainingColumn
-from rich.table import Table
-from rich.panel import Panel
+import numpy as np
+import pandas as pd
+import torch
 from rich import box
+from rich.console import Console
+from rich.panel import Panel
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeRemainingColumn
+from rich.table import Table
+
+from . import VirusCNN_siamese, util
 
 console = Console()
 
@@ -118,14 +120,14 @@ def main(host_dir, virus_dir, output, cpu, show_preview):
 
             host_task = progress.add_task("[cyan]Processing hosts...", total=len(host_list))
 
-            for i, host_fn in enumerate(host_list):
+            for i, _host_fn in enumerate(host_list):
                 host_name = host_name_list[i]
                 host_path = host_path_list[i]
                 host_onehot = util.fasta2onehot(host_path)
 
                 virus_task = progress.add_task(f"[magenta]  → {host_name[:20]}...", total=len(virus_list))
 
-                for j, virus_fn in enumerate(virus_list):
+                for j, _virus_fn in enumerate(virus_list):
                     virus_name = virus_name_list[j]
                     virus_path = virus_path_list[j]
                     virus_onehot = util.fasta2onehot(virus_path)
