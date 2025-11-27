@@ -78,7 +78,10 @@ def main(host_dir, virus_dir, output, cpu, show_preview):
     # Load model
     with console.status("[bold green]Loading model...", spinner="dots"):
         model = VirusCNN_siamese.VirusCNN(share_weight=True).to(device)
-        model.load_state_dict(torch.load(BytesIO(pkgutil.get_data("ContigNet", "models/model.dict")), map_location=device))
+        model_bytes = pkgutil.get_data("ContigNet", "models/model.dict")
+        if model_bytes is None:
+            raise FileNotFoundError("Embedded model weights could not be found")
+        model.load_state_dict(torch.load(BytesIO(model_bytes), map_location=device))
     console.print("[green]✓[/green] Model loaded successfully")
 
     # Load file lists

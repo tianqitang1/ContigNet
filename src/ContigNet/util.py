@@ -4,11 +4,12 @@ import pickle
 from itertools import groupby
 from operator import itemgetter
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import numpy as np
 from Bio import SeqIO
 from ete3 import NCBITaxa
+from numpy.typing import NDArray
 
 _ncbi: Optional[NCBITaxa] = None
 
@@ -169,7 +170,7 @@ def remove_plasmid_seq(input_dir_path, output_dir_path):
     def filter_fun(fn: str):
         return fn.endswith(".fa") or fn.endswith(".fasta") or fn.endswith(".fna")
 
-    fasta_filename_list = filter(filter_fun, fasta_filename_list)
+    fasta_filename_list = list(filter(filter_fun, fasta_filename_list))
     for fasta_file in fasta_filename_list:
         input_fasta_path = os.path.join(input_dir_path, fasta_file)
         input_handle = open(input_fasta_path)
@@ -256,7 +257,7 @@ def seq2intseq(seq: str, contig_length: Optional[int] = None) -> np.ndarray:
         return np.array(list(map(nt2index, str(seq))))
 
 
-def int2onehot(array: np.ndarray) -> np.ndarray:
+def int2onehot(array: NDArray[np.integer[Any]]) -> NDArray[np.float64]:
     """
     Convert an integer array to one-hot encoded array.
 
@@ -282,10 +283,10 @@ def int2onehot(array: np.ndarray) -> np.ndarray:
     """
     # n = np.max(array) + 1
     n = 4
-    return np.eye(int(n))[array.astype(int)]
+    return cast(NDArray[np.float64], np.eye(int(n), dtype=float)[array.astype(int)])
 
 
-def seq2onehot(seq: str, contig_length: Optional[int] = None) -> np.ndarray:
+def seq2onehot(seq: str, contig_length: Optional[int] = None) -> NDArray[np.float64]:
     """
     Convert a DNA sequence string to a one-hot encoded array.
 
@@ -318,7 +319,7 @@ def seq2onehot(seq: str, contig_length: Optional[int] = None) -> np.ndarray:
     return onehot
 
 
-def fasta2onehot(path: str, contig_length: Optional[int] = None) -> np.ndarray:
+def fasta2onehot(path: str, contig_length: Optional[int] = None) -> NDArray[np.float64]:
     """
     Convert a multi-sequence fasta file to a one-hot encoded array.
 
@@ -350,8 +351,8 @@ def fasta2onehot(path: str, contig_length: Optional[int] = None) -> np.ndarray:
            [0., 0., 0., 1.]])
 
     """
-    seq = [str(s.seq) for s in SeqIO.parse(path, "fasta")]
-    seq = "".join(seq)
+    seq_list = [str(s.seq) for s in SeqIO.parse(path, "fasta")]
+    seq = "".join(seq_list)
     return seq2onehot(seq, contig_length)
 
 
