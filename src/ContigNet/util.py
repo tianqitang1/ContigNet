@@ -1,17 +1,50 @@
+import math
+import os
+import pickle
 from itertools import groupby
 from operator import itemgetter
-import os
-import numpy as np
-import pickle
-from typing import Optional, Any
-import pandas as pd
-from ete3 import NCBITaxa
-from Bio import SeqIO
-import math
-from io import StringIO
 from pathlib import Path
+from typing import Any, Optional, cast
 
-ncbi = NCBITaxa()
+import numpy as np
+from Bio import SeqIO
+from ete3 import NCBITaxa
+from numpy.typing import NDArray
+
+_ncbi: Optional[NCBITaxa] = None
+
+
+def get_ncbi_taxa() -> NCBITaxa:
+    """Lazily initialize and return a shared ``NCBITaxa`` instance.
+
+    The :mod:`ete3` ``NCBITaxa`` helper downloads taxonomy data the first
+    time it is instantiated, which fails in restricted or offline
+    environments (e.g., continuous integration).  To avoid triggering the
+    download unless taxonomy utilities are explicitly used, the instance is
+    created on demand.
+
+    Returns
+    -------
+    NCBITaxa
+        A cached ``NCBITaxa`` instance ready for use.
+
+    Raises
+    ------
+    RuntimeError
+        If the ``NCBITaxa`` database cannot be initialized.  The original
+        exception is chained for easier debugging.
+    """
+
+    global _ncbi
+    if _ncbi is None:
+        try:
+            _ncbi = NCBITaxa()
+        except Exception as exc:  # pragma: no cover - depends on network availability
+            raise RuntimeError(
+                "Unable to initialize the NCBI taxonomy database. "
+                "Ensure the database is available or run in an environment with network access."
+            ) from exc
+    return _ncbi
 NT_DICT = {"A": 0, "C": 1, "G": 2, "T": 3}
 
 
@@ -137,7 +170,7 @@ def remove_plasmid_seq(input_dir_path, output_dir_path):
     def filter_fun(fn: str):
         return fn.endswith(".fa") or fn.endswith(".fasta") or fn.endswith(".fna")
 
-    fasta_filename_list = filter(filter_fun, fasta_filename_list)
+    fasta_filename_list = list(filter(filter_fun, fasta_filename_list))
     for fasta_file in fasta_filename_list:
         input_fasta_path = os.path.join(input_dir_path, fasta_file)
         input_handle = open(input_fasta_path)
@@ -224,7 +257,7 @@ def seq2intseq(seq: str, contig_length: Optional[int] = None) -> np.ndarray:
         return np.array(list(map(nt2index, str(seq))))
 
 
-def int2onehot(array: np.ndarray) -> np.ndarray:
+def int2onehot(array: NDArray[np.integer[Any]]) -> NDArray[np.float64]:
     """
     Convert an integer array to one-hot encoded array.
 
@@ -250,10 +283,10 @@ def int2onehot(array: np.ndarray) -> np.ndarray:
     """
     # n = np.max(array) + 1
     n = 4
-    return np.eye(int(n))[array.astype(int)]
+    return cast(NDArray[np.float64], np.eye(int(n), dtype=float)[array.astype(int)])
 
 
-def seq2onehot(seq: str, contig_length: Optional[int] = None) -> np.ndarray:
+def seq2onehot(seq: str, contig_length: Optional[int] = None) -> NDArray[np.float64]:
     """
     Convert a DNA sequence string to a one-hot encoded array.
 
@@ -286,7 +319,7 @@ def seq2onehot(seq: str, contig_length: Optional[int] = None) -> np.ndarray:
     return onehot
 
 
-def fasta2onehot(path: str, contig_length: Optional[int] = None) -> np.ndarray:
+def fasta2onehot(path: str, contig_length: Optional[int] = None) -> NDArray[np.float64]:
     """
     Convert a multi-sequence fasta file to a one-hot encoded array.
 
@@ -318,8 +351,8 @@ def fasta2onehot(path: str, contig_length: Optional[int] = None) -> np.ndarray:
            [0., 0., 0., 1.]])
 
     """
-    seq = [str(s.seq) for s in SeqIO.parse(path, "fasta")]
-    seq = "".join(seq)
+    seq_list = [str(s.seq) for s in SeqIO.parse(path, "fasta")]
+    seq = "".join(seq_list)
     return seq2onehot(seq, contig_length)
 
 
@@ -348,6 +381,7 @@ def get_rank(taxid, rank):
     >>> get_rank(67890, 'genus')
     9876
     """
+    ncbi = get_ncbi_taxa()
     lineage = ncbi.get_lineage(taxid)
     ranks = ncbi.get_rank(lineage)
     ranks = {ranks[key]: key for key in ranks.keys()}
@@ -388,7 +422,7 @@ def tuple_list_to_dict_set(list):
     If multiple tuples have the same first element, the second elements are
     added to the same set for that key.
     """
-    return dict((k, set([v[1] for v in itr])) for k, itr in groupby(list, itemgetter(0)))
+    return {k: {v[1] for v in itr} for k, itr in groupby(list, itemgetter(0))}
 
 
 def load_virus_onehot(virus_dir, virus_list):

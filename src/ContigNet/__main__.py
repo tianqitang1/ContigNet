@@ -1,19 +1,21 @@
 #!/usr/bin/env python
 
 import os
-import pandas as pd
-import warnings
-import numpy as np
-import torch
-from . import util, VirusCNN_siamese
 import pkgutil
+import warnings
 from io import BytesIO
+
 import click
-from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TimeRemainingColumn
-from rich.table import Table
-from rich.panel import Panel
+import numpy as np
+import pandas as pd
+import torch
 from rich import box
+from rich.console import Console
+from rich.panel import Panel
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeRemainingColumn
+from rich.table import Table
+
+from . import VirusCNN_siamese, util
 
 console = Console()
 
@@ -76,7 +78,10 @@ def main(host_dir, virus_dir, output, cpu, show_preview):
     # Load model
     with console.status("[bold green]Loading model...", spinner="dots"):
         model = VirusCNN_siamese.VirusCNN(share_weight=True).to(device)
-        model.load_state_dict(torch.load(BytesIO(pkgutil.get_data("ContigNet", "models/model.dict")), map_location=device))
+        model_bytes = pkgutil.get_data("ContigNet", "models/model.dict")
+        if model_bytes is None:
+            raise FileNotFoundError("Embedded model weights could not be found")
+        model.load_state_dict(torch.load(BytesIO(model_bytes), map_location=device))
     console.print("[green]✓[/green] Model loaded successfully")
 
     # Load file lists
@@ -94,7 +99,14 @@ def main(host_dir, virus_dir, output, cpu, show_preview):
     console.print(f"[cyan]→[/cyan] Found {len(virus_list)} virus contig(s)")
     console.print(f"[cyan]→[/cyan] Processing {len(host_list) * len(virus_list)} pair(s)")
 
-    result_df = pd.DataFrame(np.zeros((len(host_list), len(virus_list))), columns=virus_name_list, index=host_name_list)
+    result_df = pd.DataFrame(
+        np.zeros((len(host_list), len(virus_list))),
+        columns=virus_name_list,
+        index=host_name_list,
+    )
+
+    # Preserve the CLI output path before we start computing prediction scores
+    output_path = output
 
     # Process predictions
     with torch.no_grad():
@@ -111,14 +123,14 @@ def main(host_dir, virus_dir, output, cpu, show_preview):
 
             host_task = progress.add_task("[cyan]Processing hosts...", total=len(host_list))
 
-            for i, host_fn in enumerate(host_list):
+            for i, _host_fn in enumerate(host_list):
                 host_name = host_name_list[i]
                 host_path = host_path_list[i]
                 host_onehot = util.fasta2onehot(host_path)
 
                 virus_task = progress.add_task(f"[magenta]  → {host_name[:20]}...", total=len(virus_list))
 
-                for j, virus_fn in enumerate(virus_list):
+                for j, _virus_fn in enumerate(virus_list):
                     virus_name = virus_name_list[j]
                     virus_path = virus_path_list[j]
                     virus_onehot = util.fasta2onehot(virus_path)
@@ -127,9 +139,18 @@ def main(host_dir, virus_dir, output, cpu, show_preview):
                         host_tensor = torch.Tensor(host_onehot).to(device)[None, None, :, :]
                         virus_tensor = torch.Tensor(virus_onehot).to(device)[None, None, :, :]
                         if str(device) != "cpu":
-                            output = torch.sigmoid(model(host_tensor, virus_tensor)).cpu().numpy().flatten()[0]
+                            score = (
+                                torch.sigmoid(model(host_tensor, virus_tensor))
+                                .cpu()
+                                .numpy()
+                                .flatten()[0]
+                            )
                         else:
-                            output = torch.sigmoid(model(host_tensor, virus_tensor)).numpy().flatten()[0]
+                            score = (
+                                torch.sigmoid(model(host_tensor, virus_tensor))
+                                .numpy()
+                                .flatten()[0]
+                            )
                     except RuntimeError as e:  # Fallback in case of out of GPU memory
                         if "CUDA error: out of memory" in str(e):
                             console.print("[yellow]⚠[/yellow] GPU out of memory, falling back to CPU")
@@ -137,19 +158,23 @@ def main(host_dir, virus_dir, output, cpu, show_preview):
                             model = model.to("cpu")
                             host_tensor = torch.Tensor(host_onehot)[None, None, :, :]
                             virus_tensor = torch.Tensor(virus_onehot)[None, None, :, :]
-                            output = torch.sigmoid(model(host_tensor, virus_tensor)).numpy().flatten()[0]
+                            score = (
+                                torch.sigmoid(model(host_tensor, virus_tensor))
+                                .numpy()
+                                .flatten()[0]
+                            )
                         else:
                             raise e
                     # Convert numpy scalar to Python float for pandas compatibility
-                    result_df.loc[host_name, virus_name] = float(output)
+                    result_df.loc[host_name, virus_name] = float(score)
                     progress.update(virus_task, advance=1)
 
                 progress.remove_task(virus_task)
                 progress.update(host_task, advance=1)
 
     # Save results
-    result_df.to_csv(output)
-    console.print(f"[green]✓[/green] Results saved to: [bold]{output}[/bold]")
+    result_df.to_csv(output_path)
+    console.print(f"[green]✓[/green] Results saved to: [bold]{output_path}[/bold]")
 
     # Show preview if requested
     if show_preview:
